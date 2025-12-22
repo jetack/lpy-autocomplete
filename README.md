@@ -34,6 +34,9 @@ uv sync --extra dev
 uv run -m pytest tests/
 ```
 
+## TODO
+- [ ] Imported module members completion
+
 ## License
 
 MIT
