@@ -1,7 +1,5 @@
 """Expose lpy_autocomplete's API for IDE and metaprogramming use-cases."""
 
-from typing import Dict, Optional, Tuple
-
 from .inspection import Inspect
 from .models import Candidate, Namespace, Prefix
 
@@ -27,16 +25,16 @@ class API:
 
     def __init__(
         self,
-        globals_: Optional[Dict] = None,
-        locals_: Optional[Dict] = None,
+        globals_: dict | None = None,
+        locals_: dict | None = None,
     ):
         self.set_namespace(globals_, locals_)
-        self._cached_prefix: Optional[Prefix] = None
+        self._cached_prefix: Prefix | None = None
 
     def set_namespace(
         self,
-        globals_: Optional[Dict] = None,
-        locals_: Optional[Dict] = None,
+        globals_: dict | None = None,
+        locals_: dict | None = None,
     ) -> None:
         """Rebuild namespace for possibly given globals_ and locals_.
 
@@ -48,7 +46,7 @@ class API:
         """
         self.namespace = Namespace(globals_, locals_)
 
-    def complete(self, prefix_str: str) -> Tuple[str, ...]:
+    def complete(self, prefix_str: str) -> tuple[str, ...]:
         """Get completions for a prefix string."""
         cached_prefix = self._cached_prefix
         prefix = Prefix(prefix_str, namespace=self.namespace)

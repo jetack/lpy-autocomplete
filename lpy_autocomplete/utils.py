@@ -2,7 +2,8 @@
 
 import functools
 import itertools
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, TypeVar
+from collections.abc import Callable, Iterable, Iterator
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 
@@ -52,7 +53,7 @@ def is_string(x: Any) -> bool:
     return isinstance(x, str)
 
 
-def first(coll: Iterable[T]) -> Optional[T]:
+def first(coll: Iterable[T]) -> T | None:
     """Return first item from collection."""
     return next(iter(coll), None)
 
@@ -67,20 +68,20 @@ def drop(count: int, coll: Iterable[T]) -> Iterator[T]:
     return itertools.islice(coll, count, None)
 
 
-def drop_last(count: int, coll: Iterable[T]) -> List[T]:
+def drop_last(count: int, coll: Iterable[T]) -> list[T]:
     """Drop last count elements from collection."""
     lst = list(coll)
     return lst[:-count] if count > 0 else lst
 
 
-def butlast(coll: Iterable[T]) -> List[T]:
+def butlast(coll: Iterable[T]) -> list[T]:
     """Return all but the last element."""
     return drop_last(1, coll)
 
 
-def allkeys(d: Dict) -> Tuple[str, ...]:
+def allkeys(d: dict) -> tuple[str, ...]:
     """Get all keys from a possibly nested dict, flattened."""
-    def _allkeys(d: Any, parents: Tuple = ()) -> List:
+    def _allkeys(d: Any, parents: tuple = ()) -> list:
         if isinstance(d, (list, tuple)):
             return []
         result = []

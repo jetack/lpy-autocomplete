@@ -2,7 +2,7 @@
 
 import inspect
 from functools import reduce
-from typing import Any, List, Optional, Tuple
+from typing import Any
 
 from .utils import unmangle
 
@@ -30,11 +30,11 @@ class Signature:
             raise TypeError("Unsupported callable for Signature.")
 
         self.func = func
-        self.args: Optional[Tuple[Parameter, ...]] = None
-        self.defaults: Optional[Tuple[Parameter, ...]] = None
-        self.varargs: Optional[List[str]] = None
-        self.varkw: Optional[List[str]] = None
-        self.kwargs: Tuple[Parameter, ...] = ()
+        self.args: tuple[Parameter, ...] | None = None
+        self.defaults: tuple[Parameter, ...] | None = None
+        self.varargs: list[str] | None = None
+        self.varkw: list[str] | None = None
+        self.kwargs: tuple[Parameter, ...] = ()
 
         self._extract_from_signature(sig)
 
@@ -75,7 +75,7 @@ class Signature:
         self.kwargs = tuple(kwargs_no_default + kwargs_with_default)
 
     @staticmethod
-    def _format_args(args: Optional[Tuple], opener: Optional[str]) -> str:
+    def _format_args(args: tuple | None, opener: str | None) -> str:
         if not args:
             return ""
         args_str = " ".join(str(a) for a in args)
@@ -83,13 +83,13 @@ class Signature:
         return opener_str + args_str
 
     @classmethod
-    def _acc_lispy_repr(cls, acc: str, args_opener: Tuple) -> str:
+    def _acc_lispy_repr(cls, acc: str, args_opener: tuple) -> str:
         args, opener = args_opener
         delim = " " if acc and args else ""
         return acc + delim + cls._format_args(args, opener)
 
     @property
-    def _arg_opener_pairs(self) -> List[Tuple]:
+    def _arg_opener_pairs(self) -> list[tuple]:
         return [
             (self.args, None),
             (self.defaults, "&optional"),
@@ -102,7 +102,7 @@ class Signature:
         return reduce(self._acc_lispy_repr, self._arg_opener_pairs, "")
 
 
-def _split_docs(docs: str) -> Tuple[str, str, str]:
+def _split_docs(docs: str) -> tuple[str, str, str]:
     """Partition docs string into pre/-/post-args strings."""
     arg_start = docs.index("(") + 1
     arg_end = docs.index(")")
@@ -120,7 +120,7 @@ def _argstring_to_param(arg_string: str) -> Parameter:
     return Parameter(arg_name, default)
 
 
-def _optional_arg_idx(args_strings: List[str]) -> Optional[int]:
+def _optional_arg_idx(args_strings: list[str]) -> int | None:
     """First idx of an arg with a default in list of args strings."""
     for idx, arg in enumerate(args_strings):
         if "=" in arg:
@@ -128,7 +128,7 @@ def _optional_arg_idx(args_strings: List[str]) -> Optional[int]:
     return None
 
 
-def _insert_optional(args: List[str]) -> List[str]:
+def _insert_optional(args: list[str]) -> list[str]:
     """Insert &optional into list of args strings."""
     optional_idx = _optional_arg_idx(args)
     if optional_idx is not None:
@@ -232,7 +232,7 @@ class Inspect:
         """Is object a compile table construct?"""
         return self._docs_first_line == "Built-in immutable sequence."
 
-    def signature(self) -> Optional[Signature]:
+    def signature(self) -> Signature | None:
         """Return object's signature if it exists."""
         try:
             return Signature(self.obj)

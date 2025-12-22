@@ -1,6 +1,7 @@
 """Implements Namespace-dependent methods and structures for lpy_autocomplete."""
 
-from typing import Any, Callable, Dict, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 from .utils import (
     allkeys,
@@ -20,8 +21,8 @@ class Namespace:
 
     def __init__(
         self,
-        globals_: Optional[Dict] = None,
-        locals_: Optional[Dict] = None,
+        globals_: dict | None = None,
+        locals_: dict | None = None,
     ):
         # Components
         self.globals = globals_ if globals_ is not None else globals()
@@ -41,7 +42,7 @@ class Namespace:
             return unmangle(key)
         return unmangle(key.__name__)
 
-    def _collect_names(self) -> Tuple[str, ...]:
+    def _collect_names(self) -> tuple[str, ...]:
         """Collect all names from all places."""
         all_keys = chain(
             allkeys(self.globals),
@@ -70,7 +71,7 @@ class Namespace:
 class Candidate:
     """Represents a completion candidate."""
 
-    def __init__(self, symbol: str, namespace: Optional[Namespace] = None):
+    def __init__(self, symbol: str, namespace: Namespace | None = None):
         self.symbol = unmangle(symbol)
         self.mangled = mangle(symbol)
         self.namespace = namespace if namespace is not None else Namespace()
@@ -89,7 +90,7 @@ class Candidate:
     def __bool__(self) -> bool:
         return bool(self.symbol)
 
-    def macro(self) -> Optional[Callable]:
+    def macro(self) -> Callable | None:
         """Is candidate a macro? Return it if so."""
         return self.namespace.macros.get(self.symbol)
 
@@ -104,7 +105,7 @@ class Candidate:
         """Get object for underlying candidate."""
         return self.macro() or self.evaled()
 
-    def attributes(self) -> Optional[Tuple[str, ...]]:
+    def attributes(self) -> tuple[str, ...] | None:
         """Return attributes for obj if they exist."""
         obj = self.evaled()
         if obj is not None:
@@ -141,14 +142,14 @@ class Candidate:
 class Prefix:
     """A completion prefix."""
 
-    def __init__(self, prefix: str, namespace: Optional[Namespace] = None):
+    def __init__(self, prefix: str, namespace: Namespace | None = None):
         self.prefix = prefix
         self.namespace = namespace if namespace is not None else Namespace()
 
         self.candidate = self._prefix_to_candidate(prefix, self.namespace)
         self.attr_prefix = self._prefix_to_attr_prefix(prefix)
 
-        self.completions: Tuple[str, ...] = tuple()
+        self.completions: tuple[str, ...] = tuple()
 
     def __repr__(self) -> str:
         return f"Prefix<prefix={self.prefix}>"
@@ -181,7 +182,7 @@ class Prefix:
             return f"{self.candidate}.{completion}"
         return completion
 
-    def complete(self, cached_prefix: Optional["Prefix"] = None) -> Tuple[str, ...]:
+    def complete(self, cached_prefix: "Prefix | None" = None) -> tuple[str, ...]:
         """Get candidates for a given Prefix."""
         # Short circuit case: "1+nonsense.real-attr" eg. "foo.__prin"
         if self.has_attr and not self.has_obj:
