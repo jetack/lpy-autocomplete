@@ -6,7 +6,7 @@ from collections.abc import Callable
 from typing import Any
 
 # Python keywords + lispython-specific keywords
-KEYWORDS = frozenset(keyword.kwlist) | {"ife"}
+KEYWORDS = frozenset(keyword.kwlist) | {"ife", "defmacro", "require"}
 
 from .utils import (
     allkeys,
