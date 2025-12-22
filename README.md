@@ -1,6 +1,6 @@
 # lpy-autocomplete
 
-Autocompletion and introspection tools for [lispython](https://github.com/jethack23/lispy).
+Autocompletion and introspection tools for [lispython](https://github.com/jetack/lispython).
 
 ## Installation
 
@@ -25,6 +25,13 @@ api.docs("itertools")       # -> "Functional tools..."
 
 # Annotation
 api.annotate("itertools")   # -> "<module itertools>"
+```
+
+## Development
+
+```bash
+uv sync --extra dev
+uv run -m pytest tests/
 ```
 
 ## License

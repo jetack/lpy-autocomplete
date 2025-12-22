@@ -11,6 +11,9 @@ authors = [
 keywords = ["python", "lispy", "lispython", "completion", "introspection", "emacs"]
 dependencies = []
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [project.urls]
 Repository = "https://github.com/jetack/lpy-autocomplete"
 
