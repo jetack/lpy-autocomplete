@@ -9,9 +9,7 @@ authors = [
     { name = "jetack" }
 ]
 keywords = ["python", "lispy", "lispython", "completion", "introspection", "emacs"]
-dependencies = [
-    "toolz",
-]
+dependencies = []
 
 [project.urls]
 Repository = "https://github.com/jetack/lpy-autocomplete"

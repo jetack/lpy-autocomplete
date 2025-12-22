@@ -2,9 +2,6 @@
 
 from typing import Any, Callable, Dict, Optional, Tuple
 
-import builtins
-import toolz.curried as tz
-
 from .utils import (
     allkeys,
     butlast,

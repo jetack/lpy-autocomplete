@@ -4,8 +4,6 @@ import functools
 import itertools
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Tuple, TypeVar
 
-import toolz.curried as tz
-
 T = TypeVar("T")
 
 
@@ -118,5 +116,17 @@ islice = itertools.islice
 reduce = functools.reduce
 remove = itertools.filterfalse
 repeat = itertools.repeat
-distinct = tz.unique
-flatten = tz.concat
+
+
+def distinct(iterable: Iterable[T]) -> Iterator[T]:
+    """Yield unique elements, preserving order."""
+    seen: set = set()
+    for item in iterable:
+        if item not in seen:
+            seen.add(item)
+            yield item
+
+
+def flatten(iterables: Iterable[Iterable[T]]) -> Iterator[T]:
+    """Flatten one level of nesting."""
+    return itertools.chain.from_iterable(iterables)
