@@ -22,19 +22,14 @@ class Namespace:
         self,
         globals_: Optional[Dict] = None,
         locals_: Optional[Dict] = None,
-        macros_: Optional[Dict[str, Callable]] = None,
     ):
         # Components
         self.globals = globals_ if globals_ is not None else globals()
         self.locals = locals_ if locals_ is not None else locals()
 
         # Macros are stored in __macro_namespace in lispython
-        if macros_ is not None:
-            self.macros = {unmangle(k): v for k, v in macros_.items()}
-        else:
-            # Try to get from globals
-            macro_ns = self.globals.get("__macro_namespace", {})
-            self.macros = {unmangle(k): v for k, v in macro_ns.items()}
+        macro_ns = self.globals.get("__macro_namespace", {})
+        self.macros = {unmangle(k): v for k, v in macro_ns.items()}
 
         # Collected names
         self.names = self._collect_names()

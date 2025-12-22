@@ -14,7 +14,7 @@ pip install lpy-autocomplete
 from lpy_autocomplete import API
 
 api = API()
-api.set_namespace(globals_=globals(), macros_=__macro_namespace)
+api.set_namespace(globals_=globals())  # macros found automatically from __macro_namespace
 
 # Completion
 api.complete("pr")          # -> ("print", ...)

@@ -48,7 +48,7 @@ class TestAPI:
 
     def test_complete_with_macros(self):
         macros = {"my-macro": lambda: None, "another-macro": lambda: None}
-        api = API(macros_=macros)
+        api = API(globals_={"__macro_namespace": macros})
         completions = api.complete("my-")
         assert "my-macro" in completions
 

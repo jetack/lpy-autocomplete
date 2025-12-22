@@ -1,6 +1,6 @@
 """Expose lpy_autocomplete's API for IDE and metaprogramming use-cases."""
 
-from typing import Callable, Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from .inspection import Inspect
 from .models import Candidate, Namespace, Prefix
@@ -11,7 +11,7 @@ class API:
 
     Usage:
         api = API()
-        api.set_namespace(globals_=globals(), macros_=__macro_namespace)
+        api.set_namespace(globals_=globals())
 
         # Completion
         api.complete("pr")          # -> ("print", ...)
@@ -29,25 +29,24 @@ class API:
         self,
         globals_: Optional[Dict] = None,
         locals_: Optional[Dict] = None,
-        macros_: Optional[Dict[str, Callable]] = None,
     ):
-        self.set_namespace(globals_, locals_, macros_)
+        self.set_namespace(globals_, locals_)
         self._cached_prefix: Optional[Prefix] = None
 
     def set_namespace(
         self,
         globals_: Optional[Dict] = None,
         locals_: Optional[Dict] = None,
-        macros_: Optional[Dict[str, Callable]] = None,
     ) -> None:
-        """Rebuild namespace for possibly given globals_, locals_, and macros_.
+        """Rebuild namespace for possibly given globals_ and locals_.
+
+        Macros are automatically found from __macro_namespace in globals.
 
         Typically, the values passed are:
             globals_ -> globals()
             locals_  -> locals()
-            macros_  -> __macro_namespace
         """
-        self.namespace = Namespace(globals_, locals_, macros_)
+        self.namespace = Namespace(globals_, locals_)
 
     def complete(self, prefix_str: str) -> Tuple[str, ...]:
         """Get completions for a prefix string."""

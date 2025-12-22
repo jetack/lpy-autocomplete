@@ -22,7 +22,8 @@ class TestNamespace:
 
     def test_namespace_with_macros(self):
         macros = {"my_macro": lambda x: x, "another_macro": lambda: None}
-        ns = Namespace(macros_=macros)
+        globals_with_macros = {"__macro_namespace": macros}
+        ns = Namespace(globals_=globals_with_macros)
         assert "my-macro" in ns.macros
         assert "another-macro" in ns.macros
 
@@ -104,7 +105,7 @@ class TestCandidate:
 
     def test_candidate_macro(self):
         macros = {"my-macro": lambda x: x * 2}
-        ns = Namespace(macros_=macros)
+        ns = Namespace(globals_={"__macro_namespace": macros})
         c = Candidate("my-macro", namespace=ns)
         assert c.macro() is not None
 
@@ -119,7 +120,7 @@ class TestCandidate:
     def test_candidate_get_obj_macro(self):
         macro_fn = lambda x: x
         macros = {"test-macro": macro_fn}
-        ns = Namespace(macros_=macros)
+        ns = Namespace(globals_={"__macro_namespace": macros})
         c = Candidate("test-macro", namespace=ns)
         assert c.get_obj() is macro_fn
 
@@ -148,11 +149,9 @@ class TestCandidate:
 
     def test_annotate_macro(self):
         macros = {"my-macro": lambda: None}
-        ns = Namespace(macros_=macros)
+        ns = Namespace(globals_={"__macro_namespace": macros})
         c = Candidate("my-macro", namespace=ns)
-        # Macros that exist as functions get annotated as functions
-        # since evaled() returns None but macro() returns the function
-        assert "macro" in c.annotate() or "function" in c.annotate()
+        assert c.annotate() == "<macro my-macro>"
 
     def test_annotate_unknown(self):
         c = Candidate("nonexistent_xyz")
