@@ -22,11 +22,26 @@ def mangle(s: str) -> str:
 def unmangle(s: str) -> str:
     """Convert Python identifier to lispy symbol.
 
-    In lispython, this just converts underscores to hyphens.
+    In lispython, this converts underscores to hyphens,
+    but preserves leading and trailing underscores (e.g., __call__, _private).
     """
     if not s:
         return ""
-    return s.replace("_", "-")
+
+    # Count and strip leading underscores
+    leading = len(s) - len(s.lstrip("_"))
+    # Count and strip trailing underscores
+    trailing = len(s) - len(s.rstrip("_"))
+
+    # Handle all-underscore strings
+    if leading + trailing >= len(s):
+        return s
+
+    # Extract middle part and convert
+    middle = s[leading : len(s) - trailing if trailing else None]
+    middle = middle.replace("_", "-")
+
+    return "_" * leading + middle + "_" * trailing
 
 
 def is_none(x: Any) -> bool:
