@@ -1,7 +1,12 @@
 """Implements Namespace-dependent methods and structures for lpy_autocomplete."""
 
+import keyword
+
 from collections.abc import Callable
 from typing import Any
+
+# Python keywords + lispython-specific keywords
+KEYWORDS = frozenset(keyword.kwlist) | {"ife"}
 
 from .utils import (
     allkeys,
@@ -45,6 +50,7 @@ class Namespace:
     def _collect_names(self) -> tuple[str, ...]:
         """Collect all names from all places."""
         all_keys = chain(
+            KEYWORDS,
             allkeys(self.globals),
             allkeys(self.locals),
             self.macros.keys(),
@@ -133,6 +139,8 @@ class Candidate:
             annotation = self._translate_class(obj.__class__.__name__)
         elif self.macro():
             annotation = "macro"
+        elif self.mangled in KEYWORDS:
+            annotation = "keyword"
         else:
             annotation = "unknown"
 
