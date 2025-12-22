@@ -2,10 +2,9 @@
 
 import inspect
 from functools import reduce
-from itertools import repeat
 from typing import Any, List, Optional, Tuple
 
-from .utils import drop_last, first, is_none, remove, unmangle
+from .utils import unmangle
 
 
 class Parameter:
@@ -26,79 +25,54 @@ class Signature:
 
     def __init__(self, func):
         try:
-            argspec = inspect.getfullargspec(func)
-        except TypeError:
+            sig = inspect.signature(func)
+        except (TypeError, ValueError):
             raise TypeError("Unsupported callable for Signature.")
 
         self.func = func
-        self.args = self._args_from(argspec)
-        self.defaults = self._defaults_from(argspec)
-        self.kwargs = self._kwargs_from(argspec)
-        self.varargs = self._varargs_from(argspec)
-        self.varkw = self._varkw_from(argspec)
+        self.args: Optional[Tuple[Parameter, ...]] = None
+        self.defaults: Optional[Tuple[Parameter, ...]] = None
+        self.varargs: Optional[List[str]] = None
+        self.varkw: Optional[List[str]] = None
+        self.kwargs: Tuple[Parameter, ...] = ()
 
-    @staticmethod
-    def _parametrize(
-        symbols: Optional[List[str]], defaults: Optional[List] = None
-    ) -> Optional[Tuple[Parameter, ...]]:
-        """Construct many Parameters for symbols with possibly defaults."""
-        if not symbols:
-            return None
-        defaults = defaults if defaults else list(repeat(None))
-        return tuple(Parameter(s, d) for s, d in zip(symbols, defaults))
+        self._extract_from_signature(sig)
 
-    @classmethod
-    def _args_from(cls, argspec) -> Optional[Tuple[Parameter, ...]]:
-        """Extract args without defined defaults from argspec."""
-        num_defaults = len(argspec.defaults) if argspec.defaults else 0
-        symbols = drop_last(num_defaults, argspec.args)
-        return cls._parametrize(symbols)
+    def _extract_from_signature(self, sig: inspect.Signature) -> None:
+        """Extract parameter info from inspect.Signature."""
+        args = []
+        defaults = []
+        kwargs_no_default = []
+        kwargs_with_default = []
 
-    @classmethod
-    def _defaults_from(cls, argspec) -> Optional[Tuple[Parameter, ...]]:
-        """Extract args with defined defaults from argspec."""
-        args_without_defaults = cls._args_from(argspec)
-        num_without = len(args_without_defaults) if args_without_defaults else 0
-        symbols = argspec.args[num_without:]
-        return cls._parametrize(symbols, argspec.defaults)
+        for name, param in sig.parameters.items():
+            kind = param.kind
+            has_default = param.default is not inspect.Parameter.empty
+            default_val = repr(param.default) if has_default else None
 
-    @classmethod
-    def _kwargsonly_from(cls, argspec) -> Optional[Tuple[Parameter, ...]]:
-        """Extract kwargs without defined defaults from argspec."""
-        kwargs_with_defaults = set(
-            (argspec.kwonlydefaults or {}).keys()
-        )
-        symbols = [
-            kw for kw in argspec.kwonlyargs if kw not in kwargs_with_defaults
-        ]
-        return cls._parametrize(symbols)
+            if kind == inspect.Parameter.POSITIONAL_ONLY:
+                if has_default:
+                    defaults.append(Parameter(name, default_val))
+                else:
+                    args.append(Parameter(name))
+            elif kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                if has_default:
+                    defaults.append(Parameter(name, default_val))
+                else:
+                    args.append(Parameter(name))
+            elif kind == inspect.Parameter.VAR_POSITIONAL:
+                self.varargs = [unmangle(name)]
+            elif kind == inspect.Parameter.KEYWORD_ONLY:
+                if has_default:
+                    kwargs_with_default.append(Parameter(name, default_val))
+                else:
+                    kwargs_no_default.append(Parameter(name))
+            elif kind == inspect.Parameter.VAR_KEYWORD:
+                self.varkw = [unmangle(name)]
 
-    @classmethod
-    def _kwonlydefaults_from(cls, argspec) -> Optional[Tuple[Parameter, ...]]:
-        """Extract kwargs with defined defaults from argspec."""
-        if not argspec.kwonlydefaults:
-            return None
-        symbols, defaults = zip(*argspec.kwonlydefaults.items())
-        return cls._parametrize(list(symbols), list(defaults))
-
-    @classmethod
-    def _kwargs_from(cls, argspec) -> Tuple[Parameter, ...]:
-        """Chain kwargs with and without defaults."""
-        kwargsonly = cls._kwargsonly_from(argspec) or ()
-        kwonlydefaults = cls._kwonlydefaults_from(argspec) or ()
-        return tuple(p for p in (*kwargsonly, *kwonlydefaults) if p is not None)
-
-    @staticmethod
-    def _varargs_from(argspec) -> Optional[List[str]]:
-        if argspec.varargs:
-            return [unmangle(argspec.varargs)]
-        return None
-
-    @staticmethod
-    def _varkw_from(argspec) -> Optional[List[str]]:
-        if argspec.varkw:
-            return [unmangle(argspec.varkw)]
-        return None
+        self.args = tuple(args) if args else None
+        self.defaults = tuple(defaults) if defaults else None
+        self.kwargs = tuple(kwargs_no_default + kwargs_with_default)
 
     @staticmethod
     def _format_args(args: Optional[Tuple], opener: Optional[str]) -> str:

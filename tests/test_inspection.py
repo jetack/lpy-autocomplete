@@ -192,10 +192,11 @@ class TestInspect:
         assert sig is not None
         assert "a" in str(sig)
 
-    def test_signature_unsupported(self):
-        insp = Inspect(print)  # built-in, no signature
+    def test_signature_builtin(self):
+        insp = Inspect(print)  # built-in now has signature via inspect.signature
         sig = insp.signature()
-        assert sig is None
+        assert sig is not None
+        assert "args" in str(sig)
 
     def test_docs_function(self):
         def my_func(a, b):
